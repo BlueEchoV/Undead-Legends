@@ -16,6 +16,7 @@ class Spell {
 		int						mNumberOfHits = 1;
 		int						mPiercingLayers = 0;
 		int						mAmmo = 1;
+		int						mCurrentFrameSelected = 0;
 
 		double					mAngle = 0.0;
 		double					mLifeTime = 0.0;
@@ -25,7 +26,12 @@ class Spell {
 		double					mCastSound = 0.0;
 		double					mSpellAttackDelay = 0.0;
 		double					mAmmoAttackSpeed = 0.0;
-		
+		double					mTimeUntilDamageDealt = 0.0;
+		double					mDelayUntilAttack = 0.0;
+
+		bool					mImageLoaded = false;
+		Image					mSpellImage;
+
 		int						mSpellSpeed = 0;
 
 		std::string				mSpellKey;
@@ -69,6 +75,9 @@ class Spell {
 		}
 		virtual void setNumberOfHits(int numberOfHits) {
 			mNumberOfHits = numberOfHits;
+		}
+		void setDelayUntilAttack(double delayUntilAttack) {
+			mDelayUntilAttack = delayUntilAttack;
 		}
 
 		virtual double getAOEAttackDelay() {
@@ -220,7 +229,8 @@ class FireAOESpell : public Spell {
 			if (firstHit) {
 				firstHit = false;
 				enemyTargeted->timeUntilDamageTaken = getAOEAttackDelay();
-				return -1;
+				// Return zero damage taken
+				return 0;
 			}
 			else {
 				enemyTargeted->timeUntilDamageTaken = getAOEAttackDelay();
@@ -233,8 +243,7 @@ class FireAOESpell : public Spell {
 class MagicSwordSpell : public Spell {
 	public:
 		double			mTurnSpeed = 0.0;
-		double			mTimeUntilDamageDealt = 0.0;
-		double			mDelayUntilAttack = 0.0;
+		bool			mFindNewTarget = false;
 
 		// Constructor
 		MagicSwordSpell(GameData& gameData) : Spell(gameData) {}
@@ -244,9 +253,6 @@ class MagicSwordSpell : public Spell {
 		void setTarget(int spellSpeed) override;
 		void setTurnSpeed(double turnSpeed) {
 			mTurnSpeed = turnSpeed;
-		}
-		void setDelayUntilAttack(double delayUntilAttack) {
-			mDelayUntilAttack = delayUntilAttack;
 		}
 
 		void updatePosition(double deltaTime) override;
@@ -264,27 +270,9 @@ class MagicSwordSpell : public Spell {
 		}
 
 		virtual int applyDamage(Enemy* enemyTargeted) override {
-			// Modifying this could be cool.
 			enemyTargeted->hp -= mDamage;
 			if (enemyTargeted->hp <= 0) {
-				// Could be between the player or the weapon itself
-				// mGameData.player->position
-				// mPosition
-				// Potential vector subscript out of range bug when many are spawned.
-				// May never be able to get to this bug.
-				int nearestEnemy = closestEnemyMS(mPosition, &mGameData);
-				// This fix makes it so the weapons that stop targeting stop moving perminantly?
-				if (nearestEnemy > 0) {
-					if (distance(mGameData.enemies[nearestEnemy].position, mGameData.player->position) > Constants::RESOLUTION_Y / 3) {
-						nearestEnemy = closestEnemyMS(mGameData.player->position, &mGameData);
-						mGameData.enemies[nearestEnemy].targeted = true;
-						mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
-					}
-					else {
-						mGameData.enemies[nearestEnemy].targeted = true;
-						mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
-					}
-				}
+				mFindNewTarget = true;
 			}
 			else {
 				mTimeUntilDamageDealt = mDelayUntilAttack;
@@ -292,4 +280,47 @@ class MagicSwordSpell : public Spell {
 			return mDamage;
 		}
 
+};
+
+class GreenDiamondSpell : public Spell {
+	public:
+		bool				mExplosionPushedBack = false;
+
+		GreenDiamondSpell(GameData& gameData) : Spell(gameData) {}
+		void setPosition(Vector position) override;
+		Image* getImage(GameData& gameData) override;
+		void updatePosition(double deltaTime) override;
+		virtual bool canDamage(Enemy* enemyTargeted) override;
+		virtual int applyDamage(Enemy* enemyTargeted) override {
+			REF(enemyTargeted);
+			return 0;
+		}
+};
+
+class GreenDiamondExplosionSpell : public Spell {
+	public:
+		GreenDiamondExplosionSpell(GameData& gameData) : Spell(gameData) {
+			mSpellAttackDelay = 1;
+		}
+		void setPosition(Vector position) override;
+		Image* getImage(GameData& gameData) override;
+		void updatePosition(double deltaTime) override;
+		virtual bool canDamage(Enemy* enemyTargeted) {
+			if (enemyTargeted->hp > 0) {
+				if (enemyTargeted->timeUntilDamageTaken <= 0) {
+					return true;
+				}
+			}
+			/*
+			if (mTimeUntilDamageDealt <= 0) {
+				return true;
+			}
+			*/
+			return false;
+		}
+		virtual int applyDamage(Enemy* enemyTargeted) override {
+			enemyTargeted->timeUntilDamageTaken = getAOEAttackDelay();
+			setPiercingLayers(-1);
+			return Spell::applyDamage(enemyTargeted);
+		}
 };

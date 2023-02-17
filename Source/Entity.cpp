@@ -89,7 +89,7 @@ void drawEntityAnimated(GameData& gameData, Entity* entity, bool facingDirection
 	Uint32 getTicks = SDL_GetTicks();
 	srcRect.x = srcRect.w * (int)((getTicks / entity->speed) % frames);
 
-	// True if right
+	// True = right
 	if (facingDirection) {
 		R_RenderCopyEx(entity->sprite.image.texture, &srcRect, &destRect, entity->angle, NULL, SDL_FLIP_HORIZONTAL);
 	}
@@ -157,7 +157,7 @@ void drawCharacterIdle(GameData& gameData, Entity* entity, bool right) {
 void createEnemy(Image image, Vector position, GameData* gameData, int healthPoints, int damage, bool animated, int speed) {
 	Enemy enemy = {};
 
-	enemy.radius = returnSpriteSize(image) / 2;
+	enemy.radius = returnSpriteSize(image) / 4;
 	enemy.sprite = createSprite(image);
 	enemy.position = position;
 	enemy.hp = healthPoints;
@@ -250,7 +250,7 @@ void drawHealthBar(GameData& gameData) {
 	const Vector hp_size = { (double)Constants::HEALTH_BAR_W, (double)Constants::HEALTH_BAR_H };
 	double remainingHPPercent = (double)gameData.player->hp / (double)gameData.player->maxHP;
 
-	Vector hp_offset = { 0, 47 };
+	Vector hp_offset = { 0, 55 };
 	R_Rect hp_rect = MakeRect(gameData.player->position + hp_offset, hp_size);
 	R_Rect filled_rect = hp_rect;
 	filled_rect.w = (int)(filled_rect.w * remainingHPPercent);
@@ -274,19 +274,19 @@ void drawExperienceBar(GameData& gameData) {
 	double currentEXPOffset = ((double)Constants::EXP_BAR_W - currentEXP.w) / 2.0;
 	currentEXP.h = Constants::EXP_BAR_H;
 	currentEXP.x = (int)(gameData.player->position.x - currentEXPOffset) - currentEXP.w / 2;
-	currentEXP.y = (int)(gameData.player->position.y + 425);
+	currentEXP.y = (int)(gameData.player->position.y + 505);
 
 	double missingEXPPercent = 1 - currentEXPPercent;
 	missingEXP.w = (int)(Constants::EXP_BAR_W * missingEXPPercent);
 	double missingEXPOffset = (Constants::EXP_BAR_W - missingEXP.w) / 2.0;
 	missingEXP.h = Constants::EXP_BAR_H;
 	missingEXP.x = (int)(gameData.player->position.x + missingEXPOffset);
-	missingEXP.y = (int)(gameData.player->position.y + 425);
+	missingEXP.y = (int)(gameData.player->position.y + 505);
 
 	outlineEXP.w = Constants::EXP_BAR_W;
 	outlineEXP.h = Constants::EXP_BAR_H;
 	outlineEXP.x = (int)(gameData.player->position.x) - outlineEXP.w / 2;
-	outlineEXP.y = (int)(gameData.player->position.y + 425);
+	outlineEXP.y = (int)(gameData.player->position.y + 505);
 
 	drawFilledRectangle(&currentEXP, 255, 127, 80, 255);
 

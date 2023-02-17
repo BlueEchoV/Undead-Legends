@@ -5,7 +5,7 @@
 namespace Constants {
 	static const int		RESOLUTION_X = 1920;
 	static const int		RESOLUTION_Y = 1080;
-	static const double		ENEMY_SPEED = 50;
+	static const double		ENEMY_SPEED = 75;
 	static const double		ENEMY_ACCELERATION = 2500;
 	static const int		TILE_SIZE = 32;
 	static const double		GRAVITY = 2000;

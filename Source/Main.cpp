@@ -13,17 +13,14 @@
 #include "Entity.h"
 #include "Game.h"
 
-// DONE: Death animations finished
-// DONE: Damage numbers now delay death animations to make it feel more responsive.
-// DONE: Hierarchy for files
-// DONE: More sounds
-// DONE: Enchanted Sword
-// DONE: Memory leak (objects created with new need to be deleted) - Change back to value types.
-//			gamedata is the highest up, so it can see more.
-
+// TODO: Get github sorted out (Gitbash)
+// TODO: Get used to using command line
+// TODO: Move the gameloop into a different file to simplify main
+// -> TODO: Game states (levels & menus), and a character selection window
+// -> TODO: Saving game states and reading and writing files (sounds, sprites, etc.)
+// TODO: Fireball bug (aoe doing zero damage)
 // TODO: Add a indicator over the head of enemies that the enchanted sword is targeting, change the 
 //			speed of the sword when it is turning
-// TODO: Game states (levels & menus), and a character selection window
 // TODO: Increase the pixel ratios of all characters, weapons, and enemies
 // TODO: Experience level up window
 // TODO: Improve the damage number implementation (Offset each number by some or add a small knockback
@@ -104,7 +101,7 @@ int main(int argc, char** argv) {
 
 	// Player Types
 	Image characterSizeTest = loadImage("Assets/Character_Size_Test_1.png", 1);
-	Image characterDemon = loadImage("Assets/Character_Demon_8.png", 1);
+	Image characterDemon = loadImage("Assets/Character_Demon_Final_100x100.png", 1);
 	Image characterDemonAnimated = loadImage("Assets/Character_Demon_2_Sprite_Sheet_2.png", 1);
 	Image characterMaiden = loadImage("Assets/Character_Maiden_1.png", 1);
 	Image characterGhoul = loadImage("Assets/Character_Ghoul_5.png", 1);
@@ -115,7 +112,7 @@ int main(int argc, char** argv) {
 	// "Assets/Character_Ice_Golem_1.png"
 	Image characterDemonTest = loadImage("Assets/Character_Demon_7.png", 1);
 
-	Image characterIceGolem = loadImage("Assets/Character_Ice_Golem_3.png", 1);
+	Image characterIceGolem = loadImage("Assets/Character_Ice_Golem_Final_100x100.png", 1);
 	
 	// Enemy Types
 	// Image enemyBat = loadImage("Assets/Enemy_VampireBat_1.png");
@@ -268,6 +265,9 @@ int main(int argc, char** argv) {
 					break;
 				case SDLK_i:
 					gameData.player->newStaff(new MagicSwordStaff(gameData, gameData.player));
+					break;
+				case SDLK_o:
+					gameData.player->newStaff(new GreenDiamondStaff(gameData, gameData.player));
 					break;
 
 					// Destroy
@@ -459,11 +459,6 @@ int main(int argc, char** argv) {
 
 		drawHealthBar(gameData);
 
-		Color textColor = {};
-		textColor.r = 255;
-		textColor.g = 255;
-		textColor.b = 255;
-
 		// ***Draw Entities***
 
 		// Draw Spells
@@ -533,18 +528,23 @@ int main(int argc, char** argv) {
 		// ***Player Interface***
 		// Experience tracker
 
+		Color textColor = {};
+		textColor.r = 255;
+		textColor.g = 255;
+		textColor.b = 255;
+
 		R_BeginUIDrawing();
 		std::string experienceTracker = std::to_string(gameData.player->experience);
 		experienceTracker += std::string("/");
 		experienceTracker += std::to_string(gameData.player->levelUp);
 		int numberOfPixelsW = (int)experienceTracker.size() * 14;
-		drawString(textColor, &font, fontSize, experienceTracker, (Constants::RESOLUTION_X / 2) - (numberOfPixelsW / 2), 865);
+		drawString(textColor, &font, fontSize, experienceTracker, (Constants::RESOLUTION_X / 2) - (numberOfPixelsW / 2), 1048);
 
 		// Level tracker
 		std::string levelTracker = std::string("Level: ");
 		levelTracker += std::to_string(gameData.player->level);
 		int pixelWidthLeveltracker = (int)levelTracker.size() * 14;
-		drawString(textColor, &font, fontSize, levelTracker, (Constants::RESOLUTION_X / 2) - (pixelWidthLeveltracker / 2), 835);
+		drawString(textColor, &font, fontSize, levelTracker, (Constants::RESOLUTION_X / 2) - (pixelWidthLeveltracker / 2), 1022);
 
 		// Kill tracker
 		drawString(textColor, &font, fontSize, std::string("Kills: "), 10, 10);

@@ -100,7 +100,8 @@ void Spell::draw(GameData& gameData) {
 		srcRect.w = image->w / frames;
 		srcRect.h = image->h;
 		Uint32 getTicks = SDL_GetTicks();
-		srcRect.x = srcRect.w * (int)((getTicks / 75) % frames);
+		mCurrentFrameSelected = (int)((getTicks / 75) % frames);
+		srcRect.x = srcRect.w * mCurrentFrameSelected;
 
 		R_RenderCopyEx(image->texture, &srcRect, &destRect, mAngle, NULL, SDL_FLIP_NONE);
 	}
@@ -146,6 +147,9 @@ void SpikeSpell::setPosition(Vector position) {
 
 Image* SpikeSpell::getImage(GameData& gameData) {
 	REF(gameData);
+	// "Assets/Weapon_Green_Diamond_1.png"
+	// "Assets/Weapon_Green_Diamond_2.png"
+	// "Assets/Weapon_Spike_2.png"
 	static Image spellImage = loadImage("Assets/Weapon_Spike_2.png", 1);
 	mRadius = returnSpriteSize(spellImage);
 	return &spellImage;
@@ -190,6 +194,8 @@ void ConsecratedGroundSpell::setPosition(Vector position) {
 
 Image* ConsecratedGroundSpell::getImage(GameData& gameData) {
     REF(gameData);
+	// "Assets/Weapon_Green_Diamond_Explosion_1.png"
+	// "Assets/Weapon_Consecrated_Ground_1.png"
 	static Image spellImage = loadImage("Assets/Weapon_Consecrated_Ground_1.png", 1);
 	mRadius = returnSpriteSize(spellImage);
 	return &spellImage;
@@ -206,6 +212,7 @@ Image* FireballSpell::getImage(GameData& gameData) {
 	// "Assets/Fireball_Animated/Fireball_Animated_4_Final-Sheet.png"
 	// "Assets/Fireball_Animated/Fireball_Animated_5_Final-Sheet.png"
 	static Image spellImage = loadImage("Assets/Fireball_Animated/Fireball_Animated_5_Final-Sheet.png", 7);
+	mRadius = returnSpriteSize(spellImage) / spellImage.num_frames;
 	return &spellImage;
 }
 
@@ -252,7 +259,8 @@ Image* MagicSwordSpell::getImage(GameData& gameData) {
     REF(gameData);
 	// "Assets/Weapon_Magic_Sword_2.png"
 	// "Assets/Weapon_Magic_Sword_3.png"
-	static Image spellImage = loadImage("Assets/Weapon_Magic_Sword_3.png", 1);
+	// "Assets/Weapon_Magic_Sword_4.png"
+	static Image spellImage = loadImage("Assets/Weapon_Magic_Sword_4.png", 1);
 	mRadius = returnSpriteSize(spellImage);
 	return &spellImage;
 }
@@ -263,16 +271,42 @@ void MagicSwordSpell::setTarget(int spellSpeed) {
 		Vector offset = {};
 		// closestEnemyMS does a (if targeted) check
 		int nearestEnemy = closestEnemyMS(mGameData.player->position, &mGameData);
-		mGameData.enemies[nearestEnemy].targeted = true;
-		mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
-		offset = mGameData.enemies[nearestEnemy].position - mGameData.player->position;
-		setVelocity(normalize(offset) * spellSpeed);
-		mAngle = angleFromDirection(mVelocity);
+		if (nearestEnemy >= 0) {
+			mGameData.enemies[nearestEnemy].targeted = true;
+			mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
+			offset = mGameData.enemies[nearestEnemy].position - mGameData.player->position;
+			setVelocity(normalize(offset) * spellSpeed);
+			mAngle = angleFromDirection(mVelocity);
+			mFindNewTarget = false;
+		}
 	}
 }
 
 void MagicSwordSpell::updatePosition(double deltaTime) {
 	mTimeUntilDamageDealt -= deltaTime;
+	if (mFindNewTarget) {
+		if (mGameData.enemies.size() > 0) {
+			int nearestEnemy = closestEnemyMS(mPosition, &mGameData);
+			if (nearestEnemy >= 0) {
+				if (distance(mGameData.enemies[nearestEnemy].position, mGameData.player->position) > Constants::RESOLUTION_Y / 2) {
+				/*if ((mGameData.enemies[nearestEnemy].position.x < 50) || 
+					(mGameData.enemies[nearestEnemy].position.x > Constants::RESOLUTION_X - 50) ||
+					(mGameData.enemies[nearestEnemy].position.y < 50) ||
+					(mGameData.enemies[nearestEnemy].position.y > Constants::RESOLUTION_Y - 50)) {*/
+						nearestEnemy = closestEnemyMS(mGameData.player->position, &mGameData);
+						mGameData.enemies[nearestEnemy].targeted = true;
+						mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
+						mFindNewTarget = false;
+				}
+				else {
+					mGameData.enemies[nearestEnemy].targeted = true;
+					mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
+					mFindNewTarget = false;
+				}
+
+			}
+		}
+	}
 	for (int i = 0; i < mGameData.enemies.size(); i++) {
 		if (mGameData.enemies[i].mId == mSingleEnemyId && mGameData.enemies[i].hp > 0 && mGameData.player->hp > 0) {
 			Vector offset = {};
@@ -298,4 +332,71 @@ void MagicSwordSpell::updatePosition(double deltaTime) {
 			break;
 		}
 	}
+}
+
+// Green Diamond
+void GreenDiamondSpell::setPosition(Vector position) {
+	mPosition = position;
+}
+
+Image* GreenDiamondSpell::getImage(GameData& gameData) {
+	REF(gameData);
+	// "Assets/Weapon_Green_Diamond_2.png"
+	static Image spellImage = loadImage("Assets/Weapon_Green_Diamond_2.png", 1);
+	mRadius = returnSpriteSize(spellImage);
+	mAngle = 270;
+	return &spellImage;
+}
+
+void GreenDiamondSpell::updatePosition(double deltaTime) {
+	REF(deltaTime);
+	Vector newPosition = mGameData.player->position;
+	newPosition.x += 50;
+	mPosition = newPosition;
+	if (!mExplosionPushedBack) {
+		GreenDiamondExplosionSpell* greenDiamondExplosionSpell = new GreenDiamondExplosionSpell(mGameData);
+		greenDiamondExplosionSpell->setPosition(mPosition);
+		greenDiamondExplosionSpell->setLifeTime(UINT32_MAX);
+		greenDiamondExplosionSpell->setDamage(25);
+		greenDiamondExplosionSpell->setKnockBackDistance(0.0);
+		greenDiamondExplosionSpell->setPiercingLayers(UINT_MAX);
+		greenDiamondExplosionSpell->setSpellAttackDelay(getSpellAttackDelay());
+		// greenDiamondExplosionSpell->setDelayUntilAttack(2.0);
+		greenDiamondExplosionSpell->setAOEAttackDelay(0.25);
+		mGameData.spells.push_back(greenDiamondExplosionSpell);
+		mExplosionPushedBack = true;
+	}
+}
+
+bool GreenDiamondSpell::canDamage(Enemy* enemyTargeted) {
+	REF(enemyTargeted);
+	return false;
+}
+
+// Green Diamond Explosion
+void GreenDiamondExplosionSpell::setPosition(Vector position) {
+	mPosition = position;
+}
+
+Image* GreenDiamondExplosionSpell::getImage(GameData& gameData) {
+	REF(gameData);
+	// Weapon_Fireball_AOE_5.png
+	// Weapon_Green_Diamond_Explosion_1-Sheet.png
+	// Weapon_Green_Diamond_Explosion_Test.png
+	if (!mImageLoaded) {
+		mSpellImage = loadImage("Assets/Weapon_Green_Diamond_Explosion_1-Sheet.png", 20);
+		mRadius = returnSpriteSize(mSpellImage) / mSpellImage.num_frames;
+		mImageLoaded = true;
+		return &mSpellImage;
+	}
+	return &mSpellImage;
+}
+
+void GreenDiamondExplosionSpell::updatePosition(double deltaTime) {
+	mTimeUntilDamageDealt -= deltaTime;
+	Vector newPosition = mGameData.player->position;
+	newPosition.x += 50;
+	mPosition = newPosition;
+	mAngle += 100 * deltaTime;
+	mRadius = mCurrentFrameSelected * 12;
 }

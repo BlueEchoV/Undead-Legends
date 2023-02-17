@@ -17,10 +17,8 @@ class Staff {
 
 		int							mCurrentCharges = 1;
 		int							mMaxCharges = 1;
-		double						mTimeUntilCast = 0;
-		double						mSpellAttackDelay = 0;
-
-		// uint32_t					mEntityID = -1;
+		double						mTimeUntilCast = 0.0;
+		double						mSpellAttackDelay = 0.0;
 
 	public:
 		// Initializtion list. Use comma to init more variables
@@ -70,7 +68,7 @@ class SpikeStaff : public Staff {
 	public:
 		SpikeStaff(GameData& gameData, Character* caster) : Staff(gameData) {
 			mSpellAttackDelay = 1;
-			setMaxCharges(2);
+			setMaxCharges(10);
 			this->mCaster = caster;
 		}
 
@@ -80,7 +78,7 @@ class SpikeStaff : public Staff {
 				spikeSpell->setPosition(mCaster->position);
 				spikeSpell->setTarget(400);
 				spikeSpell->setLifeTime(5);
-				spikeSpell->setDamage(50);
+				spikeSpell->setDamage(100);
 				spikeSpell->setKnockBackDistance(0.0);
 				spikeSpell->setPiercingLayers(0);
 				spikeSpell->setSpellAttackDelay(getSpellAttackDelay());
@@ -181,7 +179,7 @@ class MagicSwordStaff : public Staff {
 			// Vector subscript out of range bug where there are too many. (Targeting enemies that don't 
 			// exist) - Make bosses targetable by multiple enemies (remove the targeted boolean variable)
 			// (If no other enemies exist)
-			setMaxCharges(1);
+			setMaxCharges(10);
 			this->mCaster = caster;
 		}
 
@@ -189,15 +187,40 @@ class MagicSwordStaff : public Staff {
 			if (canCast(deltaTime)) {
 				MagicSwordSpell* magicSwordSpell = new MagicSwordSpell(mGameData);
 				magicSwordSpell->setPosition(mCaster->position);
-				magicSwordSpell->setTarget(250);
+				magicSwordSpell->setTarget(400);
 				magicSwordSpell->setLifeTime(UINT32_MAX);
-				magicSwordSpell->setDamage(100);
+				magicSwordSpell->setDamage(10);
 				magicSwordSpell->setKnockBackDistance(0.0);
 				// magicSwordSpell->setPiercingLayers(UINT_MAX);
 				magicSwordSpell->setSpellAttackDelay(getSpellAttackDelay());
 				magicSwordSpell->setTurnSpeed(720);
-				magicSwordSpell->setDelayUntilAttack(0.50);
+				magicSwordSpell->setDelayUntilAttack(0.10);
 				return magicSwordSpell;
+			}
+			else {
+				return nullptr;
+			}
+		}
+};
+
+class GreenDiamondStaff : public Staff {
+	public:
+		GreenDiamondStaff(GameData& gameData, Character* caster) : Staff(gameData) {
+			// Will only cast once
+			mSpellAttackDelay = UINT_MAX;
+			setMaxCharges(1);
+			this->mCaster = caster;
+		}
+
+		Spell* cast(double deltaTime) override {
+			if (canCast(deltaTime)) {
+				GreenDiamondSpell* greenDiamondSpell = new GreenDiamondSpell(mGameData);
+				Vector newPosition = {};
+				newPosition = mCaster->position;
+				newPosition.x += 50;
+				greenDiamondSpell->setPosition(newPosition);
+				greenDiamondSpell->setLifeTime(UINT32_MAX);
+				return greenDiamondSpell;
 			}
 			else {
 				return nullptr;

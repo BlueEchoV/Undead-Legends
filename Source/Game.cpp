@@ -116,8 +116,7 @@ double dotProduct(Vector a, Vector b) {
 	return a.x * b.x + a.y * b.y;
 }
 
-double ClosestRotation(double current, double target)
-{
+double ClosestRotation(double current, double target) {
 	double result = 0;
 	double angle = target - current;
 	if (angle > 0)
