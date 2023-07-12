@@ -74,7 +74,7 @@ class ExperienceOrb : public Entity {
 
 R_Rect MakeEntityRect(Entity* entity);
 
-void createCharacter(GameData& gameData, Image image, int healthPoints, bool animated, int speed);
+void createCharacter(GameData& gameData, std::string imageName, int healthPoints, bool animated, int speed);
 
 void updateEntityPosition(Entity* entity, double delta);
 
@@ -88,7 +88,7 @@ void drawCharacterIdle(GameData& gameData, Entity* entity, bool right);
 
 void createEnemy(Image image, Vector position, GameData* gameData, int healthPoints, int damage, bool animated, int speed);
 
-void createDeathAnimation(Image image, Vector position, GameData& gameData, int timesHit);
+void createDeathAnimation(GameData& gameData, std::string name, Vector position, int timesHit);
 
 int closestEnemy(Character* player, GameData* gameData);
 

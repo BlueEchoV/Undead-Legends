@@ -71,8 +71,7 @@ void Spell::collision(Enemy* enemyTargeted) {
 						enemyTargeted->destroyed = true;
 						// totalEnemiesKilled += 1;
 						// Experience Orbs Vector
-						static Image experienceOrbImage = loadImage("Assets/Experience_Orb_1.png", 1);
-						ExperienceOrb experienceOrb = createExperienceOrb(experienceOrbImage,
+						ExperienceOrb experienceOrb = createExperienceOrb(mGameData.entityImageFileUMap["experienceOrbImage"],
 							enemyTargeted->position.x, enemyTargeted->position.y, Constants::EXPERIENCE_ORB_LIFETIME);
 						mGameData.experienceOrbs.push_back(experienceOrb);
 					}

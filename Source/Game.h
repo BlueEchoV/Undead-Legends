@@ -108,3 +108,7 @@ void drawDamageNumber(GameData& gameData, DamageNumber& damageNumber, Image* tex
 void drawFilledRectangle(R_Rect* rect, int red, int green, int blue, int alpha);
 
 void drawNonFilledRectangle(R_Rect* rect, int red, int green, int blue, int alpha);
+
+void addImage(GameData& gameData, std::string name, const char* fileName, int frames);
+
+void loadImages(GameData& gameData);

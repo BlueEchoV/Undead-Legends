@@ -20,17 +20,16 @@ class Staff {
 		double						mTimeUntilCast = 0.0;
 		double						mSpellAttackDelay = 0.0;
 
+		std::string					mStaffType = "";
+
 	public:
 		// Initializtion list. Use comma to init more variables
 		// By the time you are inside of a constructors scope,
 		// all variables are initilized. This method does it before
 		// the scope. A reference cannot be bound before the scope.
 		Staff(GameData& gameData) : mGameData(gameData) {
-			// Lambda for temporary debuging weapons
-			std::erase_if(mGameData.spells, [](Spell* spell) {
-				return spell;
-				}
-			);
+			// Lambda for temporary debugging weapons
+
 		}
 		virtual ~Staff() = default;
 		virtual Spell* cast(double deltaTime) = 0;
@@ -61,6 +60,13 @@ class Staff {
 		virtual void setMaxCharges(int maxCharges) {
 			mMaxCharges = maxCharges;
 			mCurrentCharges = mMaxCharges;
+		}
+
+		void setStaffType(std::string newStaffType) {
+			mStaffType = newStaffType;
+		}
+		std::string getStaffType() {
+			return mStaffType;
 		}
 };
 
@@ -124,21 +130,38 @@ class ConsecratedGroundStaff : public Staff {
 		ConsecratedGroundStaff(GameData& gameData, Character* caster) : Staff(gameData) {
 			mSpellAttackDelay = UINT_MAX;
 			mCaster = caster;
+			mStaffType = "consecratedGround";
+			bool spellExists = false;
 		}
 
 		Spell* cast(double deltaTime) override {
-			if (canCast(deltaTime)) {
-				ConsecratedGroundSpell* consecratedGround = new ConsecratedGroundSpell(mGameData);
-				consecratedGround->setPosition(mCaster->position);
-				consecratedGround->setLifeTime(UINT_MAX);
-				consecratedGround->setDamage(100);
-				consecratedGround->setKnockBackDistance(0.0);
-				consecratedGround->setPiercingLayers(0);
-				consecratedGround->setAOEAttackDelay(0.75);
-				return consecratedGround;
+			REF(deltaTime);
+			if (mGameData.player->staff->getStaffType() == "consecratedGround") {
+				for (int i = 0; i < mGameData.spells.size(); i++) {
+					if (mGameData.spells[i]->getSpellType() == "consecratedGround") {
+						continue;
+					}
+					else {
+						ConsecratedGroundSpell* consecratedGround = new ConsecratedGroundSpell(mGameData);
+						consecratedGround->setPosition(mCaster->position);
+						consecratedGround->setLifeTime(UINT_MAX);
+						consecratedGround->setDamage(100);
+						consecratedGround->setKnockBackDistance(0.0);
+						consecratedGround->setPiercingLayers(0);
+						consecratedGround->setAOEAttackDelay(0.75);
+						consecratedGround->setSpellType("consecratedGround");
+						return consecratedGround;
+					}
+				}
 			}
 			else {
+				for (int i = 0; i < mGameData.spells.size(); i++) {
+					if (mGameData.spells[i]->getSpellType() == "consecratedGround") {
+						delete mGameData.spells[i];
+					}
+				}
 				return nullptr;
+			}
 			}
 		}
 };

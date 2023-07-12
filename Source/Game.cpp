@@ -342,3 +342,48 @@ void drawNonFilledRectangle(R_Rect* rect, int red, int green, int blue, int alph
 	R_SetRenderDrawColor((Uint8)red, (Uint8)green, (Uint8)blue, (Uint8)alpha);
 	R_RenderDrawRect(rect);
 }
+
+void addImage(GameData& gameData, std::string name, const char* fileName, int frames) {
+	if (gameData.entityImageFileUMap.find(name) == gameData.entityImageFileUMap.end()) {
+		Image& result = gameData.entityImageFileUMap[name];
+		result = loadImage(fileName, frames);
+	}
+}
+
+void addFont(GameData& gameData, std::string name, const char* fileName) {
+	if (gameData.entityImageFileUMap.find(name) == gameData.entityImageFileUMap.end()) {
+		Image& result = gameData.entityImageFileUMap[name];
+		result = loadFont(fileName);
+	}
+}
+
+void loadImages(GameData& gameData) {
+	// ***Playable Characters***
+	addImage(gameData, "characterDemon", "Assets/Character_Demon_Final_100x100.png", 1);
+	addImage(gameData, "characterSizeTest", "Assets/Character_Size_Test_1.png", 1);
+	addImage(gameData, "characterDemonAnimated", "Assets/Character_Demon_2_Sprite_Sheet_2.png", 3);
+	addImage(gameData, "characterMaiden", "Assets/Character_Maiden_1.png", 1);
+	addImage(gameData, "characterGhoul", "Assets/Character_Ghoul_5.png", 1);
+	addImage(gameData, "characterVampireA", "Assets/Character_Vampire_4.png", 1);
+	addImage(gameData, "characterVampireB", "Assets/Character_Vampire_5_ShortHair.png", 1);
+	addImage(gameData, "characterFrankensteinCreation", "Assets/Character_FrankensteinCreation_1.png", 1);
+	addImage(gameData, "characterSkeleton", "Assets/Character_Skeleton_1.png", 1);
+	addImage(gameData, "characterDemonTest", "Assets/Character_Demon_7.png", 1);
+	addImage(gameData, "characterIceGolem", "Assets/Character_Ice_Golem_Final_100x100.png", 1);
+
+	// ***Enemies***
+	addImage(gameData, "enemyBatAnimated", "Assets/Enemy_VampireBat_1_SpriteSheet.png", 2);
+	// "Assets/Enemy_Gargoyle_1.png"
+	// "Assets/Enemy_Gargoyle_1_Smaller.png"
+	addImage(gameData, "enemyGargoyleAnimated", "Assets/Enemy_Gargoyle_1_Smaller_Sprite_Sheet.png", 2);
+	addImage(gameData, "enemyFlower", "Assets/Ememy_Flower_1.png", 1);
+
+	// ***Death animations***
+	addImage(gameData, "batDeathSpriteSheet", "Assets/Enemy_VampireBat_Death_Sprite-Sheet.png", 5);
+	addImage(gameData, "experienceOrbImage", "Assets/Experience_Orb_1.png", 1);
+
+	// ***Fonts***
+	// Image font = loadFont("Assets/Font_1.png");
+	// Image font = loadFont("Assets/Font_2.png");
+	addFont(gameData, "font", "Assets/Font_3.png");
+}

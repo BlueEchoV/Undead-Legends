@@ -7,10 +7,11 @@ R_Rect MakeEntityRect(Entity* entity)
 	return MakeRect(entity->position, &entity->sprite);
 }
 
-void createCharacter(GameData& gameData, Image image, int healthPoints, bool animated, int speed) {
+void createCharacter(GameData& gameData, std::string imageName, int healthPoints, bool animated, int speed) {
+	Image currentImage = gameData.entityImageFileUMap[imageName];
 	gameData.player = new Character();
-	gameData.player->sprite = createSprite(image);
-	gameData.player->radius = returnSpriteSize(image) / 2;
+	gameData.player->sprite = createSprite(currentImage);
+	gameData.player->radius = returnSpriteSize(currentImage) / 2;
 	// Default pickup radius
 	gameData.player->pickUpRadius = Constants::DEFAULT_PICKUP_RADIUS;
 	gameData.player->hp = healthPoints;
@@ -170,10 +171,10 @@ void createEnemy(Image image, Vector position, GameData* gameData, int healthPoi
 	gameData->enemies.push_back(enemy);
 }
 
-void createDeathAnimation(Image image, Vector position, GameData& gameData, int timesHit) {
+void createDeathAnimation(GameData& gameData, std::string name, Vector position, int timesHit) {
 	DeathAnimation deathAnimation = {};
 
-	deathAnimation.sprite = createSprite(image);
+	deathAnimation.sprite = createSprite(gameData.entityImageFileUMap[name]);
 	deathAnimation.position = position;
 	deathAnimation.currentFrame = 0;
 	deathAnimation.timesHit = timesHit;
@@ -246,7 +247,6 @@ void activateExpKnockback(Character* player, ExperienceOrb* expOrb, double knock
 */
 
 void drawHealthBar(GameData& gameData) {
-
 	const Vector hp_size = { (double)Constants::HEALTH_BAR_W, (double)Constants::HEALTH_BAR_H };
 	double remainingHPPercent = (double)gameData.player->hp / (double)gameData.player->maxHP;
 

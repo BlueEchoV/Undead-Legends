@@ -39,6 +39,8 @@ class Spell {
 		std::vector<uint32_t>	mEnemyIds;
 		uint32_t				mSingleEnemyId;
 
+		std::string				mSpellType = "";
+
 	public:
 		Spell(GameData& gameData) : mGameData(gameData) {}
 
@@ -97,6 +99,13 @@ class Spell {
 			return mPosition;
 		}
 
+		void setSpellType(std::string newSpellType) {
+			mSpellType = newSpellType;
+		}
+		std::string getSpellType() {
+			return mSpellType;
+		}
+
 		virtual void activateKnockback(Enemy* enemyTargeted);
 
 		virtual Image* getImage(GameData& gameData) = 0;
@@ -138,6 +147,8 @@ class Spell {
 		}
 
 		virtual void collision(Enemy* enemyTargeted);
+
+
 };
 
 class SpikeSpell : public Spell {

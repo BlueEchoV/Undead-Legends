@@ -13,7 +13,13 @@
 #include "Entity.h"
 #include "Game.h"
 
-// TODO: Get github sorted out (Gitbash)
+// TODO: Start using GitHub (Finish this first)
+// TODO: Set sublime as the default editor for git bash
+// TODO: Change coordinate system to be in line with traditional math. It will save a lot of headaches.
+// TODO: Refractor the main function to make it more understandable
+// TODO: Develop a unit size for the world that isn't bound to pixels
+// TODO: Fix consecrated ground
+// - - Handle them by using different gamestates (OOP)
 // TODO: Get used to using command line
 // TODO: Move the gameloop into a different file to simplify main
 // -> TODO: Game states (levels & menus), and a character selection window
@@ -79,6 +85,7 @@ bool right = false;
 bool facingRight = false;
 double fireTime = 0;
 int ENEMYSPAWNAMOUNT = 50;
+int fontSize = 1;
 
 // No longer allocated on the stack
 GameData gameData = {};
@@ -93,52 +100,19 @@ int main(int argc, char** argv) {
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		Constants::RESOLUTION_X, Constants::RESOLUTION_Y, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
-	// -1 = default gpu
     R_CreateRenderer(window);
 
-	// Maps Types
-	Image mapA = loadImage("Assets/Map_1.png", 1);
+	loadImages(gameData);
 
-	// Player Types
-	Image characterSizeTest = loadImage("Assets/Character_Size_Test_1.png", 1);
-	Image characterDemon = loadImage("Assets/Character_Demon_Final_100x100.png", 1);
-	Image characterDemonAnimated = loadImage("Assets/Character_Demon_2_Sprite_Sheet_2.png", 1);
-	Image characterMaiden = loadImage("Assets/Character_Maiden_1.png", 1);
-	Image characterGhoul = loadImage("Assets/Character_Ghoul_5.png", 1);
-	Image characterVampireA = loadImage("Assets/Character_Vampire_4.png", 1);
-	Image characterVampireB = loadImage("Assets/Character_Vampire_5_ShortHair.png", 1);
-	Image characterFrankensteinCreation = loadImage("Assets/Character_FrankensteinCreation_1.png", 1);
-	Image characterSkeleton = loadImage("Assets/Character_Skeleton_1.png", 1);
-	// "Assets/Character_Ice_Golem_1.png"
-	Image characterDemonTest = loadImage("Assets/Character_Demon_7.png", 1);
-
-	Image characterIceGolem = loadImage("Assets/Character_Ice_Golem_Final_100x100.png", 1);
-	
-	// Enemy Types
-	// Image enemyBat = loadImage("Assets/Enemy_VampireBat_1.png");
-	Image enemyBatAnimated = loadImage("Assets/Enemy_VampireBat_1_SpriteSheet.png", 2);
-	// Image enemyGargoyle = loadImage("Assets/Enemy_Gargoyle_1.png");
-	// Image enemyGargoyle = loadImage("Assets/Enemy_Gargoyle_1_Smaller.png");
-	Image enemyGargoyleAnimated = loadImage("Assets/Enemy_Gargoyle_1_Smaller_Sprite_Sheet.png", 2); 
-	Image enemyFlower = loadImage("Assets/Ememy_Flower_1.png", 1);
-	Image enemyType = {};
-	enemyType = enemyBatAnimated;
-
-	Image batDeathSpriteSheet = loadImage("Assets/Enemy_VampireBat_Death_Sprite-Sheet.png", 5);
-
-	Image experienceOrbImage = loadImage("Assets/Experience_Orb_1.png", 1);
-	
-	int fontSize = 1;
-	// Image font = loadFont("Assets/Font_1.png");
-	// Image font = loadFont("Assets/Font_2.png");
-	Image font = loadFont("Assets/Font_3.png");
+	// Set starting enemy to spawn
+	Image enemyType = gameData.entityImageFileUMap["enemyBatAnimated"];
 
 	// Map Tiles
 	gameData.tileTypeArray[TILE_GRASS] = loadImage("Assets/grassTile.png", 1);
 	gameData.tileTypeArray[TILE_DIRT] = loadImage("Assets/dirtTile.png", 1);
 	gameData.tileTypeArray[TILE_ROCK] = loadImage("Assets/rockTile.png", 1);
 
-	createCharacter(gameData, characterDemon, 100, false, 300);
+	createCharacter(gameData, "characterDemon", 100, false, 300);
 	
 	gameData.player->position.x = Constants::RESOLUTION_X / 2;
 	gameData.player->position.y = Constants::RESOLUTION_Y / 2;
@@ -204,49 +178,48 @@ int main(int argc, char** argv) {
 				case SDLK_f:
 					break;
 
-				// Characters
 				case SDLK_1:
-					createCharacter(gameData, characterSizeTest, 100, false, 300);
+					createCharacter(gameData, "characterSizeTest", 100, false, 300);
 					break;
 				case SDLK_2:
-					createCharacter(gameData, characterIceGolem, 100, false, 300);
+					createCharacter(gameData, "characterIceGolem", 100, false, 300);
 					break;
 				case SDLK_3:
-					createCharacter(gameData, characterDemon, 100, false, 300);
+					createCharacter(gameData, "characterDemon", 100, false, 300);
 					break;
 				case SDLK_4:
-					createCharacter(gameData, characterVampireA, 100, false, 300);
+					createCharacter(gameData, "characterVampireA", 100, false, 300);
 					break;
 				case SDLK_5:
-					createCharacter(gameData, characterVampireB, 100, false, 300);
+					createCharacter(gameData, "characterVampireB", 100, false, 300);
 					break;
 				case SDLK_6:
-					createCharacter(gameData, characterFrankensteinCreation, 100, false, 300);
+					createCharacter(gameData, "characterFrankensteinCreation", 100, false, 300);
 					break;
 				case SDLK_7:
-					createCharacter(gameData, characterSkeleton, 100, false, 300);
+					createCharacter(gameData, "characterSkeleton", 100, false, 300);
 					break;
 				case SDLK_8:
-					createCharacter(gameData, characterMaiden, 100, false, 300);
+					createCharacter(gameData, "characterMaiden", 100, false, 300);
 					break;
 				case SDLK_9:
-					createCharacter(gameData, characterGhoul, 100, false, 300);
+					createCharacter(gameData, "characterGhoul", 100, false, 300);
 					break;
 
 				// Enemies
 				case SDLK_z:
 					destroyEnemies(gameData);
-					enemyType = enemyBatAnimated;
+					enemyType = gameData.entityImageFileUMap["enemyBatAnimated"];
 					animated = true;
 					break;
 				case SDLK_x:
 					destroyEnemies(gameData);
-					enemyType = enemyGargoyleAnimated;
+					enemyType = gameData.entityImageFileUMap["enemyGargoyleAnimated"];
 					animated = true;
 					break;
 				case SDLK_c:
 					destroyEnemies(gameData);
-					enemyType = enemyFlower;
+					enemyType = gameData.entityImageFileUMap["enemyFlower"];
 					animated = false;
 					break;
 
@@ -274,7 +247,6 @@ int main(int argc, char** argv) {
 				case SDLK_BACKSPACE:
 					destroyEnemies(gameData);
 					break;
-
 				}
 				break;
 			}
@@ -443,7 +415,6 @@ int main(int argc, char** argv) {
 		R_BeginFrame(view);
 		R_BeginWorldDrawing();
 		R_RenderClear();
-		R_RenderCopy(mapA.texture, NULL, NULL);
 
 		for (int w = 0; w < (Constants::RESOLUTION_X / Constants::TILE_SIZE) + 2; w++) {
 			for (int h = 0; h < (Constants::RESOLUTION_Y / Constants::TILE_SIZE) + 2; h++) {
@@ -457,9 +428,10 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		drawHealthBar(gameData);
-
 		// ***Draw Entities***
+
+		// Draw health bar
+		drawHealthBar(gameData);
 
 		// Draw Spells
 		for (Spell* spell : gameData.spells) {
@@ -494,7 +466,7 @@ int main(int argc, char** argv) {
 				// drawCircle(renderer, enemy[i].sprite.position, enemy[i].radius);
 			}
 			else {
-				createDeathAnimation(batDeathSpriteSheet, gameData.enemies[i].position, gameData, gameData.enemies[i].timesHit);
+				createDeathAnimation(gameData, "batDeathSpriteSheet", gameData.enemies[i].position, gameData.enemies[i].timesHit);
 			}
 		}
 
@@ -509,7 +481,7 @@ int main(int argc, char** argv) {
 		// Draw Damage Numbers
 		for (int i = 0; i < gameData.damageNumbers.size(); i++) {
 			if (gameData.damageNumbers[i].lifeTime > 0 && gameData.damageNumbers[i].numberDelay <= 0) {
-				drawDamageNumber(gameData, gameData.damageNumbers[i], &font, deltaTime);
+				drawDamageNumber(gameData, gameData.damageNumbers[i], &gameData.entityImageFileUMap["font"], deltaTime);
 				if (gameData.damageNumbers[i].entityType == ENTITY_ENEMY && gameData.damageNumbers[i].soundPlayed == false) {
 					playEnemyHitSound(gameData);
 					gameData.damageNumbers[i].soundPlayed = true;
@@ -538,17 +510,17 @@ int main(int argc, char** argv) {
 		experienceTracker += std::string("/");
 		experienceTracker += std::to_string(gameData.player->levelUp);
 		int numberOfPixelsW = (int)experienceTracker.size() * 14;
-		drawString(textColor, &font, fontSize, experienceTracker, (Constants::RESOLUTION_X / 2) - (numberOfPixelsW / 2), 1048);
+		drawString(textColor, &gameData.entityImageFileUMap["font"], fontSize, experienceTracker, (Constants::RESOLUTION_X / 2) - (numberOfPixelsW / 2), 1048);
 
 		// Level tracker
 		std::string levelTracker = std::string("Level: ");
 		levelTracker += std::to_string(gameData.player->level);
 		int pixelWidthLeveltracker = (int)levelTracker.size() * 14;
-		drawString(textColor, &font, fontSize, levelTracker, (Constants::RESOLUTION_X / 2) - (pixelWidthLeveltracker / 2), 1022);
+		drawString(textColor, &gameData.entityImageFileUMap["font"], fontSize, levelTracker, (Constants::RESOLUTION_X / 2) - (pixelWidthLeveltracker / 2), 1022);
 
 		// Kill tracker
-		drawString(textColor, &font, fontSize, std::string("Kills: "), 10, 10);
-		drawString(textColor, &font, fontSize, std::to_string(totalEnemiesKilled), 100, 10);
+		drawString(textColor, &gameData.entityImageFileUMap["font"], fontSize, std::string("Kills: "), 10, 10);
+		drawString(textColor, &gameData.entityImageFileUMap["font"], fontSize, std::to_string(totalEnemiesKilled), 100, 10);
 
 		// After renderPresent, the frame is over
 		R_RenderPresent();
