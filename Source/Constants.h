@@ -5,6 +5,12 @@
 namespace Constants {
 	static const int		RESOLUTION_X = 1920;
 	static const int		RESOLUTION_Y = 1080;
+
+	// Capping frame rate
+	static const int		FPS = 144;
+	// The max time between each frame
+	static const int		frameDelay = 1000 / FPS;
+
 	static const double		ENEMY_SPEED = 75;
 	static const double		ENEMY_ACCELERATION = 2500;
 	static const int		TILE_SIZE = 32;

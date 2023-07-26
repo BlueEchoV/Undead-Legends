@@ -41,6 +41,12 @@
     <ClInclude Include="Source\Tools.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\GameStates.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\InputAndRendering.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Main.cpp">
@@ -65,6 +71,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GameStates.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InputAndRendering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

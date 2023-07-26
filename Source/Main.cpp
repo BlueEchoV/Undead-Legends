@@ -13,6 +13,8 @@
 #include "Entity.h"
 #include "Game.h"
 
+#include "GameStates.h"
+
 // Test Push 5
 // TODO: Start using GitHub (Finish this first)
 // TODO: Set sublime as the default editor for git bash
@@ -91,6 +93,8 @@ int fontSize = 1;
 // No longer allocated on the stack
 GameData gameData = {};
 
+GameManager gameManager(gameData);
+
 int main(int argc, char** argv) {
 	REF(argc);
 	REF(argv);
@@ -104,10 +108,12 @@ int main(int argc, char** argv) {
     R_CreateRenderer(window);
 
 	loadImages(gameData);
-
+	
+	gameManager.changeState(new PlayingState(gameData));
+#if 0
 	// Set starting enemy to spawn
 	Image enemyType = gameData.entityImageFileUMap["enemyBatAnimated"];
-
+	
 	// Map Tiles
 	gameData.tileTypeArray[TILE_GRASS] = loadImage("Assets/grassTile.png", 1);
 	gameData.tileTypeArray[TILE_DIRT] = loadImage("Assets/dirtTile.png", 1);
@@ -118,17 +124,13 @@ int main(int argc, char** argv) {
 	gameData.player->position.x = Constants::RESOLUTION_X / 2;
 	gameData.player->position.y = Constants::RESOLUTION_Y / 2;
 
-	// Capping frame rate
-	const int FPS = 144;
-	// The max time between each frame
-	const int frameDelay = 1000 / FPS;
-	Uint32 frameStart;
-	//int frameTime;
-
-	double lastFrameTime = getTime();
-
 	// Initialize soloud
 	gameData.soloud.init();
+
+#endif
+	
+	Uint32 frameStart;
+	double lastFrameTime = getTime();
 
 	while (running) {
 		frameStart = SDL_GetTicks();
@@ -210,17 +212,17 @@ int main(int argc, char** argv) {
 				// Enemies
 				case SDLK_z:
 					destroyEnemies(gameData);
-					enemyType = gameData.entityImageFileUMap["enemyBatAnimated"];
+					gameData.currentEnemy = gameData.entityImageFileUMap["enemyBatAnimated"];
 					animated = true;
 					break;
 				case SDLK_x:
 					destroyEnemies(gameData);
-					enemyType = gameData.entityImageFileUMap["enemyGargoyleAnimated"];
+					gameData.currentEnemy = gameData.entityImageFileUMap["enemyGargoyleAnimated"];
 					animated = true;
 					break;
 				case SDLK_c:
 					destroyEnemies(gameData);
-					enemyType = gameData.entityImageFileUMap["enemyFlower"];
+					gameData.currentEnemy = gameData.entityImageFileUMap["enemyFlower"];
 					animated = false;
 					break;
 
@@ -292,10 +294,10 @@ int main(int argc, char** argv) {
 			enemyPosition.y += Constants::RESOLUTION_Y / 2;
 
 			if (animated) {
-				createEnemy(enemyType, enemyPosition, &gameData, 100, 2, true, 300);
+				createEnemy(gameData.currentEnemy, enemyPosition, &gameData, 100, 2, true, 300);
 			}
 			else {
-				createEnemy(enemyType, enemyPosition, &gameData, 100, 2, false, 300);
+				createEnemy(gameData.currentEnemy, enemyPosition, &gameData, 100, 2, false, 300);
 			}
 			/*
 			* // Degugging
@@ -559,18 +561,16 @@ int main(int argc, char** argv) {
 			}
 		);
 
-#if 0
 		// Calculate the frame time (Home much time it's 
 		// taken to get through the loop and update game
 		// objects...etc.
-		frameTime = SDL_GetTicks() - frameStart;
+		int frameTime = SDL_GetTicks() - frameStart;
 
 		// This will delay our frames
-		if (frameDelay > frameTime)
+		if (Constants::frameDelay > frameTime)
 		{
-			SDL_Delay(frameDelay - frameTime);
+			SDL_Delay(Constants::frameDelay - frameTime);
 		}
-#endif
 
 	}
 

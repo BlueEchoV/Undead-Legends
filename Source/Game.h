@@ -61,6 +61,7 @@ class GameData {
 	public:
 		Character*										player;
 		Camera											camera;
+		Image											currentEnemy;
 		std::vector<Enemy>								enemies;
 		std::vector<DeathAnimation>						deathAnimations;
 		std::vector<uint32_t>							magicSwordEnemyIds;

@@ -131,11 +131,13 @@ class ConsecratedGroundStaff : public Staff {
 			mSpellAttackDelay = UINT_MAX;
 			mCaster = caster;
 			mStaffType = "consecratedGround";
-			bool spellExists = false;
+			// bool spellExists = false;
 		}
 
 		Spell* cast(double deltaTime) override {
 			REF(deltaTime);
+			return nullptr;
+			/*
 			if (mGameData.player->staff->getStaffType() == "consecratedGround") {
 				for (int i = 0; i < mGameData.spells.size(); i++) {
 					if (mGameData.spells[i]->getSpellType() == "consecratedGround") {
@@ -162,7 +164,7 @@ class ConsecratedGroundStaff : public Staff {
 				}
 				return nullptr;
 			}
-			}
+			*/
 		}
 };
 
