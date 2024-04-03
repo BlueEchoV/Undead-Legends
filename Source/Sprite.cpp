@@ -10,7 +10,7 @@ Sprite createSprite(Image image) {
 Color readPixel(Image image, int x, int y) {
 	// This is a cast from 1 unsigned character to 4 unsigned characters
 	Color* pixels = (Color*)image.pixelData;
-	// The square brackets are derefencing the pointer
+	// The square brackets are dereference the pointer
 	Color c = pixels[y * image.w + x];
 
 	return c;

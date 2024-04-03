@@ -14,6 +14,7 @@
 #include "Game.h"
 
 #include "GameStates.h"
+#include "InputAndRendering.h"
 
 // Test Push 5
 // TODO: Start using GitHub (Finish this first)
@@ -93,7 +94,7 @@ int fontSize = 1;
 // No longer allocated on the stack
 GameData gameData = {};
 
-GameManager gameManager(gameData);
+// GameManager gameManager(gameData);
 
 int main(int argc, char** argv) {
 	REF(argc);
@@ -109,26 +110,19 @@ int main(int argc, char** argv) {
 
 	loadImages(gameData);
 	
-	gameManager.changeState(new PlayingState(gameData));
-#if 0
+	createCharacter(gameData, "characterDemon", 100, false, 300);
+
 	// Set starting enemy to spawn
-	Image enemyType = gameData.entityImageFileUMap["enemyBatAnimated"];
-	
-	// Map Tiles
+	gameData.currentEnemy = gameData.entityImageFileUMap["enemyBatAnimated"];
+
 	gameData.tileTypeArray[TILE_GRASS] = loadImage("Assets/grassTile.png", 1);
 	gameData.tileTypeArray[TILE_DIRT] = loadImage("Assets/dirtTile.png", 1);
 	gameData.tileTypeArray[TILE_ROCK] = loadImage("Assets/rockTile.png", 1);
 
 	createCharacter(gameData, "characterDemon", 100, false, 300);
-	
-	gameData.player->position.x = Constants::RESOLUTION_X / 2;
-	gameData.player->position.y = Constants::RESOLUTION_Y / 2;
 
-	// Initialize soloud
 	gameData.soloud.init();
 
-#endif
-	
 	Uint32 frameStart;
 	double lastFrameTime = getTime();
 
@@ -432,7 +426,7 @@ int main(int argc, char** argv) {
 		}
 
 		// ***Draw Entities***
-
+		// 
 		// Draw health bar
 		drawHealthBar(gameData);
 

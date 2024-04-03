@@ -21,6 +21,8 @@ void createCharacter(GameData& gameData, std::string imageName, int healthPoints
 	gameData.player->experience = 0;
 	gameData.player->level = 0;
 	gameData.player->levelUp = 1000;
+	gameData.player->position.x = Constants::RESOLUTION_X / 2;
+	gameData.player->position.y = Constants::RESOLUTION_Y / 2;
 }
 
 void updateEntityPosition(Entity* entity, double delta) {

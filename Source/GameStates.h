@@ -1,9 +1,9 @@
 #pragma once
 #include "Game.h"
 #include "InputAndRendering.h"
-
+/*
 class BaseState {
-private: 
+private:
 	GameData& mGameData;
 public:
 	BaseState(GameData& gameData) : mGameData(gameData) {}
@@ -13,9 +13,6 @@ public:
 	virtual void update() = 0;
 	virtual void exit() = 0;
 
-	void setGameData(GameData& gameData) {
-		mGameData = gameData;
-	}
 	GameData& getGameData() {
 		return mGameData;
 	}
@@ -42,7 +39,7 @@ class GameOverState : public BaseState {
 class GameManager {
 private:
 	RenderingSystem		mRenderer;
-	InputSystem			mInputHandler;
+	InputHandler		mInputHandler;
 	BaseState*			mCurrentState;
 	GameData&			mGameData;
 public:
@@ -64,3 +61,4 @@ public:
 	void render();
 };
 ;
+*/
