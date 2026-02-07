@@ -249,6 +249,13 @@ Image* FireAOESpell::getImage(GameData& gameData) {
 	return &spellImage;
 }
 
+static int findEnemyIndexById(const GameData& gd, int id) {
+    for (int i = 0; i < (int)gd.enemies.size(); ++i) {
+        if (gd.enemies[i].mId == id) return i;
+    }
+    return -1;
+}
+
 // Magic Sword Spell
 void MagicSwordSpell::setPosition(Vector position) {
 	mPosition = position;
@@ -281,56 +288,86 @@ void MagicSwordSpell::setTarget(int spellSpeed) {
 	}
 }
 
+// TEMPORARY
+inline double length(const Vector& v) {
+    return std::sqrt(v.x * v.x + v.y * v.y);
+}
+
 void MagicSwordSpell::updatePosition(double deltaTime) {
-	mTimeUntilDamageDealt -= deltaTime;
-	if (mFindNewTarget) {
-		if (mGameData.enemies.size() > 0) {
-			int nearestEnemy = closestEnemyMS(mPosition, &mGameData);
-			if (nearestEnemy >= 0) {
-				if (distance(mGameData.enemies[nearestEnemy].position, mGameData.player->position) > Constants::RESOLUTION_Y / 2) {
-				/*if ((mGameData.enemies[nearestEnemy].position.x < 50) || 
-					(mGameData.enemies[nearestEnemy].position.x > Constants::RESOLUTION_X - 50) ||
-					(mGameData.enemies[nearestEnemy].position.y < 50) ||
-					(mGameData.enemies[nearestEnemy].position.y > Constants::RESOLUTION_Y - 50)) {*/
-						nearestEnemy = closestEnemyMS(mGameData.player->position, &mGameData);
-						mGameData.enemies[nearestEnemy].targeted = true;
-						mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
-						mFindNewTarget = false;
-				}
-				else {
-					mGameData.enemies[nearestEnemy].targeted = true;
-					mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
-					mFindNewTarget = false;
-				}
+    mTimeUntilDamageDealt -= deltaTime;
 
-			}
-		}
-	}
-	for (int i = 0; i < mGameData.enemies.size(); i++) {
-		if (mGameData.enemies[i].mId == mSingleEnemyId && mGameData.enemies[i].hp > 0 && mGameData.player->hp > 0) {
-			Vector offset = {};
-			Vector newDirectionVelocity = {};
-			double currentFacingDirection = mAngle;
-			double newFacingDirection = 0.0;
+    // --- 1) Validate current target every frame ---
+    int targetIdx = findEnemyIndexById(mGameData, mSingleEnemyId);
+    bool hasValidTarget =
+        (targetIdx >= 0) &&
+        (mGameData.enemies[targetIdx].hp > 0) &&
+        (mGameData.player->hp > 0);
 
-			offset = mGameData.enemies[i].position - mPosition;
-			newDirectionVelocity = normalize(offset);
-			mVelocity = normalize(mVelocity);
-			newFacingDirection = angleFromDirection(newDirectionVelocity);
+    // If our target is gone/dead, allow retarget and clear its targeted flag if we can
+    if (!hasValidTarget) {
+        if (targetIdx >= 0) {
+            mGameData.enemies[targetIdx].targeted = false;
+        }
+        mFindNewTarget = true;
+    }
 
-			double directionAngle = ClosestRotation(currentFacingDirection, newFacingDirection);
-			double maxTurn = (mTurnSpeed * deltaTime);
-			double turnThisFrame = std::min(abs(directionAngle), maxTurn);
-			mAngle += sign(directionAngle) * turnThisFrame;
+    // --- 2) Acquire a new target if needed ---
+    if (mFindNewTarget) {
+        int nearestEnemy = closestEnemyMS(mGameData.player->position, &mGameData);
 
-			Vector newVelocityVector = facingDirection(mAngle);
-			mVelocity = newVelocityVector;
-			mVelocity *= mSpellSpeed;
-			mPosition.x += (mVelocity.x * deltaTime);
-			mPosition.y += (mVelocity.y * deltaTime);
-			break;
-		}
-	}
+        // If closestEnemyMS refuses because everything is "targeted",
+        // forcibly clear targeted flags for dead enemies (and optionally all enemies)
+        if (nearestEnemy < 0) {
+            for (auto& e : mGameData.enemies) {
+                if (e.hp <= 0) e.targeted = false;
+            }
+            nearestEnemy = closestEnemyMS(mGameData.player->position, &mGameData);
+        }
+
+        if (nearestEnemy >= 0) {
+            mGameData.enemies[nearestEnemy].targeted = true;
+            mSingleEnemyId = mGameData.enemies[nearestEnemy].mId;
+            mFindNewTarget = false;
+
+            // If we had no meaningful velocity yet, initialize direction immediately
+            Vector offset = mGameData.enemies[nearestEnemy].position - mPosition;
+            if (length(offset) > 0.0001) {
+                Vector dir = normalize(offset);
+                mAngle = angleFromDirection(dir);
+                mVelocity = dir * mSpellSpeed;
+            }
+        }
+    }
+
+    // --- 3) Move/turn toward current target (if valid) ---
+    targetIdx = findEnemyIndexById(mGameData, mSingleEnemyId);
+    if (targetIdx < 0 || mGameData.enemies[targetIdx].hp <= 0 || mGameData.player->hp <= 0) {
+        return; // will retarget next frame
+    }
+
+    Vector offset = mGameData.enemies[targetIdx].position - mPosition;
+    if (length(offset) <= 0.0001) {
+        return; // already at target; damage system will handle contact
+    }
+
+    Vector desiredDir = normalize(offset);
+
+    // If current velocity is near-zero, avoid normalizing a zero vector
+    Vector currentDir = (length(mVelocity) > 0.0001) ? normalize(mVelocity) : desiredDir;
+
+    double currentFacingDirection = mAngle;
+    double newFacingDirection = angleFromDirection(desiredDir);
+
+    double directionAngle = ClosestRotation(currentFacingDirection, newFacingDirection);
+    double maxTurn = (mTurnSpeed * deltaTime);
+    double turnThisFrame = std::min(std::abs(directionAngle), maxTurn);
+    mAngle += sign(directionAngle) * turnThisFrame;
+
+    Vector newVelocityVector = facingDirection(mAngle);
+    mVelocity = newVelocityVector * mSpellSpeed;
+
+    mPosition.x += (mVelocity.x * deltaTime);
+    mPosition.y += (mVelocity.y * deltaTime);
 }
 
 // Green Diamond

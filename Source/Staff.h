@@ -133,38 +133,44 @@ class ConsecratedGroundStaff : public Staff {
 			mStaffType = "consecratedGround";
 			// bool spellExists = false;
 		}
-
 		Spell* cast(double deltaTime) override {
 			REF(deltaTime);
-			return nullptr;
-			/*
-			if (mGameData.player->staff->getStaffType() == "consecratedGround") {
-				for (int i = 0; i < mGameData.spells.size(); i++) {
-					if (mGameData.spells[i]->getSpellType() == "consecratedGround") {
-						continue;
-					}
-					else {
-						ConsecratedGroundSpell* consecratedGround = new ConsecratedGroundSpell(mGameData);
-						consecratedGround->setPosition(mCaster->position);
-						consecratedGround->setLifeTime(UINT_MAX);
-						consecratedGround->setDamage(100);
-						consecratedGround->setKnockBackDistance(0.0);
-						consecratedGround->setPiercingLayers(0);
-						consecratedGround->setAOEAttackDelay(0.75);
-						consecratedGround->setSpellType("consecratedGround");
-						return consecratedGround;
+
+			const bool usingConsecrated = (mGameData.player->staff->getStaffType() == "consecratedGround");
+
+			if (usingConsecrated) {
+				// Only create if it doesn't already exist
+				for (Spell* s : mGameData.spells) {
+					if (s && s->getSpellType() == "consecratedGround") {
+						// Optional: keep it centered on caster
+						// s->setPosition(mCaster->position);
+						return nullptr; // already active, don't spawn another
 					}
 				}
-			}
-			else {
-				for (int i = 0; i < mGameData.spells.size(); i++) {
-					if (mGameData.spells[i]->getSpellType() == "consecratedGround") {
-						delete mGameData.spells[i];
+
+				// None found -> create it
+				auto* consecratedGround = new ConsecratedGroundSpell(mGameData);
+				consecratedGround->setPosition(mCaster->position);
+				consecratedGround->setLifeTime(UINT_MAX);
+				consecratedGround->setDamage(100);
+				consecratedGround->setKnockBackDistance(0.0);
+				consecratedGround->setPiercingLayers(0);
+				consecratedGround->setAOEAttackDelay(0.75);
+				consecratedGround->setSpellType("consecratedGround");
+				return consecratedGround;
+			} else {
+				// Remove all consecratedGround spells safely
+				for (size_t i = 0; i < mGameData.spells.size(); /* no i++ here */) {
+					Spell* s = mGameData.spells[i];
+					if (s && s->getSpellType() == "consecratedGround") {
+						delete s;
+						mGameData.spells.erase(mGameData.spells.begin() + i);
+					} else {
+						++i;
 					}
 				}
 				return nullptr;
 			}
-			*/
 		}
 };
 

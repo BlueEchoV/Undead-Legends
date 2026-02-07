@@ -191,14 +191,15 @@ void drawCircle(GameData& gameData, Vector position, double radius, int circleOf
 	}
 }
 
+const int fontW = 14;
+const int fontH = 18;
+
 void drawString(Color color, Image* textImage, int size, std::string string, double x, double y) {
 	R_Rect sourceRect = {};
 	// Font 1
 	// int fontW = 7;
 	// int fontH = 9;
 	// Font 2 
-	int fontW = 14;
-	int fontH = 18;
 	sourceRect.w = fontW;
 	sourceRect.h = fontH;
 	int stringSize = (int)string.size();
@@ -227,6 +228,26 @@ void drawString(Color color, Image* textImage, int size, std::string string, dou
 		R_RenderCopy(textImage->texture, &sourceRect, &destinationRect);
 		spacing += floor(destinationRect.w);
 	}
+}
+
+void drawStringCenteredBackground(Color color, Image* textImage, int size, std::string string, double x, double y) {
+	size_t str_length = strlen(string.c_str());
+	size_t str_w_pixels = str_length * (size * fontW);
+	size_t str_h_pixels = size * fontH;
+
+	int centered_x = (int)x - str_w_pixels / 2;
+	int centered_y = (int)y - str_h_pixels / 2;
+
+	int padding = 2;
+	R_Rect background = {
+		.x = (double)centered_x,
+		.y = (double)centered_y,
+		.w = (double)str_w_pixels + (double)(padding * 2),
+		.h = (double)str_h_pixels + (double)(padding * 2),
+	};
+	R_RenderFillRect(&background);
+
+	drawString(color, textImage, size, string, centered_x, centered_y);
 }
 
 void drawStringWorldSpace(Color color, GameData& gameData, Image* textImage, int size, std::string string, int x, int y) {

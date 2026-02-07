@@ -95,6 +95,7 @@ void drawTile(GameData& gameData, Tile tile, float perlin);
 void drawCircle(GameData& gameData, Vector position, double radius, int circleOffsetY);
 
 void drawString(Color color, Image* textImage, int size, std::string string, double x, double y);
+void drawStringCenteredBackground(Color color, Image* textImage, int size, std::string string, double x, double y);
 
 void drawStringWorldSpace(Color color, GameData& gameData, Image* textImage, int size, std::string string, int x, int y);
 

@@ -126,6 +126,8 @@ int main(int argc, char** argv) {
 	Uint32 frameStart;
 	double lastFrameTime = getTime();
 
+	bool start_level = false;
+
 	while (running) {
 		frameStart = SDL_GetTicks();
 		SDL_Event event = {};
@@ -151,6 +153,9 @@ int main(int argc, char** argv) {
 					break;
 				case SDLK_s:
 					down = false;
+					break;
+				case SDLK_BACKSPACE:
+					start_level = true;
 					break;
 				}
 				break;
@@ -260,144 +265,147 @@ int main(int argc, char** argv) {
 		}
 		fireTime -= deltaTime;
 
-		double speed = 200.0 * deltaTime;
+		if (start_level == true) {
+			double speed = 200.0 * deltaTime;
 
-		if (left) {
-			gameData.player->position.x -= speed;
-		}
-		if (right) {
-			gameData.player->position.x += speed;
-		}
-		if (down) {
-			gameData.player->position.y += speed;
-		}
-		if (up) {
-			gameData.player->position.y -= speed;
-		}
-
-
-		// Spawn enemies
-		for (int i = 0; i < (ENEMYSPAWNAMOUNT - gameData.enemies.size()); i++) {
-			double range = randomFloat(Constants::RESOLUTION_X / 2, Constants::RESOLUTION_X);
-			Vector enemyPosition = facingDirection(randomFloat(0, 360));
-
-			enemyPosition.x *= range;
-			enemyPosition.y *= range;
-
-			enemyPosition.x += Constants::RESOLUTION_X / 2;
-			enemyPosition.y += Constants::RESOLUTION_Y / 2;
-
-			if (animated) {
-				createEnemy(gameData.currentEnemy, enemyPosition, &gameData, 100, 2, true, 300);
+			if (left) {
+				gameData.player->position.x -= speed;
 			}
-			else {
-				createEnemy(gameData.currentEnemy, enemyPosition, &gameData, 100, 2, false, 300);
+			if (right) {
+				gameData.player->position.x += speed;
 			}
-			/*
-			* // Degugging
-			Vector enemyPosition = gameData.player->position;
-			enemyPosition.y += 300;
-			createEnemy(enemyType, enemyPosition, &gameData, 100, 2, true, 300, 2);
-			*/
-		}
+			if (down) {
+				gameData.player->position.y += speed;
+			}
+			if (up) {
+				gameData.player->position.y -= speed;
+			}
 
-		// Update Enemy Position
-		if (gameData.player->hp > 0) {
-			for (int i = 0; i < gameData.enemies.size(); i++) {
-				updateEnemyPosition(gameData.player, &gameData.enemies[i], deltaTime);
-				for (int j = 0; j < gameData.enemies.size(); j++) {
-					if (j == i) {
-						continue;
-					}
-					else {
-						double distanceBetween = distance(gameData.enemies[i].position, gameData.enemies[j].position);
-						double radiusSum = gameData.enemies[i].radius + gameData.enemies[j].radius;
-						if (distanceBetween < radiusSum) {
-							Vector offset = gameData.enemies[j].position - gameData.enemies[i].position;
-							offset *= 1 / distanceBetween;
-							offset *= radiusSum;
-							gameData.enemies[j].position = offset + gameData.enemies[i].position;
+
+			// Spawn enemies
+			for (int i = 0; i < (ENEMYSPAWNAMOUNT - gameData.enemies.size()); i++) {
+				double range = randomFloat(Constants::RESOLUTION_X / 2, Constants::RESOLUTION_X);
+				Vector enemyPosition = facingDirection(randomFloat(0, 360));
+
+				enemyPosition.x *= range;
+				enemyPosition.y *= range;
+
+				enemyPosition.x += Constants::RESOLUTION_X / 2;
+				enemyPosition.y += Constants::RESOLUTION_Y / 2;
+
+				if (animated) {
+					createEnemy(gameData.currentEnemy, enemyPosition, &gameData, 100, 2, true, 300);
+				}
+				else {
+					createEnemy(gameData.currentEnemy, enemyPosition, &gameData, 100, 2, false, 300);
+				}
+				/*
+				* // Degugging
+				Vector enemyPosition = gameData.player->position;
+				enemyPosition.y += 300;
+				createEnemy(enemyType, enemyPosition, &gameData, 100, 2, true, 300, 2);
+				*/
+			}
+
+			// Update Enemy Position
+			if (gameData.player->hp > 0) {
+				for (int i = 0; i < gameData.enemies.size(); i++) {
+					updateEnemyPosition(gameData.player, &gameData.enemies[i], deltaTime);
+					for (int j = 0; j < gameData.enemies.size(); j++) {
+						if (j == i) {
+							continue;
+						}
+						else {
+							double distanceBetween = distance(gameData.enemies[i].position, gameData.enemies[j].position);
+							double radiusSum = gameData.enemies[i].radius + gameData.enemies[j].radius;
+							if (distanceBetween < radiusSum) {
+								Vector offset = gameData.enemies[j].position - gameData.enemies[i].position;
+								offset *= 1 / distanceBetween;
+								offset *= radiusSum;
+								gameData.enemies[j].position = offset + gameData.enemies[i].position;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		// Update Experience Orb position
-		for (int i = 0; i < gameData.experienceOrbs.size(); i++) {
-			double distanceBetween = distance(gameData.player->position, gameData.experienceOrbs[i].position);
-			double radiusSum = gameData.player->pickUpRadius + gameData.experienceOrbs[i].radius;
-			if (distanceBetween < radiusSum) {
-				updateExperienceOrbPosition(gameData, &gameData.experienceOrbs[i], Constants::EXPERIENCE_ORB_SPEED, deltaTime);
-			}
-		}
-
-		bool playerTakingDamage = false;
-
-		for (int i = 0; i < gameData.enemies.size(); i++) {
-			if (gameData.enemies[i].timeUntilDamageTaken > 0) {
-				gameData.enemies[i].timeUntilDamageTaken -= deltaTime;
-			}
-			if (gameData.enemies[i].timeUntilDamageDealt > 0) {
-				gameData.enemies[i].timeUntilDamageDealt -= deltaTime;
-			}
-		}
-
-		for (Spell* spell : gameData.spells) {
-			spell->updatePosition(deltaTime);
-		}
-		for (int i = 0; i < gameData.spells.size(); i++) {
-			for (int j = 0; j < gameData.enemies.size(); j++) {
-				if (gameData.spells[i]->canDamage(&gameData.enemies[j])) {
-					gameData.spells[i]->collision(&gameData.enemies[j]);
-				}
-			}
-		}
-
-		// Create Projectile and fire at nearest enemy
-		if (gameData.player->hp > 0) {
-			if (gameData.enemies.size() >= 0) {
-				if (gameData.player->staff) {
-					Spell* spell = gameData.player->staff->cast(deltaTime);
-					if (spell) {
-						gameData.spells.push_back(spell);
-					}
-				}
-			}
-		}
-
-		// Player collision with enemy
-		if (gameData.player->hp > 0) {
-			for (int i = 0; i < gameData.enemies.size(); i++) {
-				if (gameData.enemies[i].timeUntilDamageDealt <= 0) {
-					double distanceBetween = distancePlayer(gameData.player->position, gameData.enemies[i].position);
-					double radiusSum = gameData.player->radius + gameData.enemies[i].radius;
-					if (distanceBetween < radiusSum) {
-						DamageNumber damageNumber = createDamageNumber(ENTITY_PLAYER, DN_FALLING, 0.0, gameData.enemies[i].damage, gameData.player->position,
-							{ randomFloat(300, -300), randomFloat(-600, -300) }, Constants::DAMAGE_NUMBER_SIZE_P, Constants::DAMAGE_NUMBER_LIFETIME);
-						gameData.damageNumbers.push_back(damageNumber);
-						gameData.player->hp -= gameData.enemies[i].damage;
-						playerTakingDamage = true;
-						gameData.enemies[i].timeUntilDamageDealt = .1;
-					}
-				}
-			}
-		}
-
-		// Player collision with experience orb
-		if (gameData.player->hp > 0) {
+			// Update Experience Orb position
 			for (int i = 0; i < gameData.experienceOrbs.size(); i++) {
-				double distanceBetween = distancePlayer(gameData.player->position, gameData.experienceOrbs[i].position);
-				double radiusSum = (gameData.player->radius / 2) + gameData.experienceOrbs[i].radius;
+				double distanceBetween = distance(gameData.player->position, gameData.experienceOrbs[i].position);
+				double radiusSum = gameData.player->pickUpRadius + gameData.experienceOrbs[i].radius;
 				if (distanceBetween < radiusSum) {
-					gameData.experienceOrbs[i].lifeTime = 0;
-					gameData.player->experience += Constants::EXPERIENCE_ORB_EXPERIENCE;
-					if (gameData.player->experience == 1000) {
-						gameData.player->level += 1;
-						gameData.player->experience = 0;
+					updateExperienceOrbPosition(gameData, &gameData.experienceOrbs[i], Constants::EXPERIENCE_ORB_SPEED, deltaTime);
+				}
+			}
+
+			bool playerTakingDamage = false;
+
+			for (int i = 0; i < gameData.enemies.size(); i++) {
+				if (gameData.enemies[i].timeUntilDamageTaken > 0) {
+					gameData.enemies[i].timeUntilDamageTaken -= deltaTime;
+				}
+				if (gameData.enemies[i].timeUntilDamageDealt > 0) {
+					gameData.enemies[i].timeUntilDamageDealt -= deltaTime;
+				}
+			}
+
+			for (Spell* spell : gameData.spells) {
+				spell->updatePosition(deltaTime);
+			}
+			for (int i = 0; i < gameData.spells.size(); i++) {
+				for (int j = 0; j < gameData.enemies.size(); j++) {
+					if (gameData.spells[i]->canDamage(&gameData.enemies[j])) {
+						gameData.spells[i]->collision(&gameData.enemies[j]);
 					}
 				}
 			}
+
+			// Create Projectile and fire at nearest enemy
+			if (gameData.player->hp > 0) {
+				if (gameData.enemies.size() >= 0) {
+					if (gameData.player->staff) {
+						Spell* spell = gameData.player->staff->cast(deltaTime);
+						if (spell) {
+							gameData.spells.push_back(spell);
+						}
+					}
+				}
+			}
+
+			// Player collision with enemy
+			if (gameData.player->hp > 0) {
+				for (int i = 0; i < gameData.enemies.size(); i++) {
+					if (gameData.enemies[i].timeUntilDamageDealt <= 0) {
+						double distanceBetween = distancePlayer(gameData.player->position, gameData.enemies[i].position);
+						double radiusSum = gameData.player->radius + gameData.enemies[i].radius;
+						if (distanceBetween < radiusSum) {
+							DamageNumber damageNumber = createDamageNumber(ENTITY_PLAYER, DN_FALLING, 0.0, gameData.enemies[i].damage, gameData.player->position,
+								{ randomFloat(300, -300), randomFloat(-600, -300) }, Constants::DAMAGE_NUMBER_SIZE_P, Constants::DAMAGE_NUMBER_LIFETIME);
+							gameData.damageNumbers.push_back(damageNumber);
+							gameData.player->hp -= gameData.enemies[i].damage;
+							playerTakingDamage = true;
+							gameData.enemies[i].timeUntilDamageDealt = .1;
+						}
+					}
+				}
+			}
+
+			// Player collision with experience orb
+			if (gameData.player->hp > 0) {
+				for (int i = 0; i < gameData.experienceOrbs.size(); i++) {
+					double distanceBetween = distancePlayer(gameData.player->position, gameData.experienceOrbs[i].position);
+					double radiusSum = (gameData.player->radius / 2) + gameData.experienceOrbs[i].radius;
+					if (distanceBetween < radiusSum) {
+						gameData.experienceOrbs[i].lifeTime = 0;
+						gameData.player->experience += Constants::EXPERIENCE_ORB_EXPERIENCE;
+						if (gameData.player->experience == 1000) {
+							gameData.player->level += 1;
+							gameData.player->experience = 0;
+						}
+					}
+				}
+			}
+
 		}
 
 		gameData.camera.position = gameData.player->position;
@@ -518,6 +526,12 @@ int main(int argc, char** argv) {
 		// Kill tracker
 		drawString(textColor, &gameData.entityImageFileUMap["font"], fontSize, std::string("Kills: "), 10, 10);
 		drawString(textColor, &gameData.entityImageFileUMap["font"], fontSize, std::to_string(totalEnemiesKilled), 100, 10);
+
+		// Start Level
+		if (start_level == false) {
+			drawStringCenteredBackground({ 255, 0, 0, 255 }, &gameData.entityImageFileUMap["font"], 3, "Press 'Backspace' to start!",
+				Constants::RESOLUTION_X / 2, Constants::RESOLUTION_Y * 0.05);
+		}
 
 		// After renderPresent, the frame is over
 		R_RenderPresent();
